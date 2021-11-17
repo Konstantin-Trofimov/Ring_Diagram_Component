@@ -1,58 +1,69 @@
+
+
+
+
 function diagram (a, b) {
-    const getOffset = () => 100 - (a) + 25
+
+
+
+    const getOffset = () => 100 - (a) + 25 
 
     const getDiff = val => 100 - val
-    console.log(getOffset())
-    let sup = 0.2
-
-    const translocation = val => {
-        let offset = 0;
-        if (val > 0 && val <= 4 || val >= 49 && val <= 51) {
-            offset = 0.2
-        }
-        else if (val > 4 && val <= 6 || val >= 46 && val <= 48) {
-            offset = 0.4
-        }
-        else if (val > 7 && val <= 9 || val >= 42 && val <= 45) {
-            offset = 0.6
-        }
-        else if (val > 9 && val <= 12 || val >= 38 && val <= 41) {
-            offset = 0.8
-        }else if (val > 12 && val <= 16 ) {
-            offset = 0.9
-        }
-        else if (val > 16 && val <= 19 || val === 37) {
-            offset = 1
-        }
-        else if (val > 19 && val <= 36) {
-            offset = 1.2
-        }
-        else if (val > 52 && val <= 55 || val >= 98 && val <= 100){
-           offset = 0
-        }
-        else if (val > 55 && val <= 60 || val >= 94 && val <= 97){
-            offset = -0.2
-        }
-        else if (val === 61 || val >= 88 && val <= 93){
-            offset = -0.4
-        }
-        else if (val > 62 && val <= 66 || val >= 86 && val <= 87){
-            offset = -0.6
-        }
-        else if (val > 67 && val <= 85){
-            offset =  -0.8
-        }
-        console.log(offset)
-        return offset
-    }
     
     return `
+    <div class="diagram">
         <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
             <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
-            <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#2BD6FB" stroke-width="5" stroke-dasharray="${a + translocation(a)} ${getDiff(a + translocation(a))}" stroke-dashoffset="25"></circle>
-            <circle class="donut-segment" cx="21" cy="22" r="15.91549430918954" fill="transparent" stroke="#217AFF" stroke-width="5" stroke-dasharray="${b} ${getDiff(b)}" stroke-dashoffset="${getOffset()}"></circle>
+
+            
+            <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="#2BD6FB" stroke-width="10" stroke-dasharray="${a} ${getDiff(a)}" stroke-dashoffset="25"></circle>
+            <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="#217AFF" stroke-width="5" stroke-dasharray="${b} ${getDiff(b)}" stroke-dashoffset="${getOffset()}"></circle>
+            
+            <circle class="donut-segment" cx="21" cy="21" r="12" fill="#112054" stroke="#2BD6FB" stroke-width="0.3"  stroke-dashoffset="25"></circle>
+
+            
         </svg>
+
+        <div class="text">Фонд оплаты труда</div>
+    </div>
     `
 }
 
-document.querySelector('.out').innerHTML = diagram(20, 80);
+// document.querySelector('.out').innerHTML = diagram(35, 65);
+
+class Diagram  {
+    constructor(title, data, colors, parentSelector, internalEclipseColor = '#FFFF') {
+        this.parentSelector = document.querySelector(`.${parentSelector}`) ,
+        this.data = data,
+        this.segmentColors = colors,
+        this.internalEclipseColor = internalEclipseColor,
+        this.title = title
+        this.offsets = []
+        this.diff()
+    }
+
+    get offset () { return 100 - (this.data[0]) + 25 }
+
+    diff (val) { return 100 - val }
+
+    render() {
+        const diagram = document.createElement('div')
+        diagram.classList.add('diagram')
+        diagram.innerHTML = `
+            <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+                <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="${this.segmentColors[0]}" stroke-width="10" stroke-dasharray="${this.data[0]} ${this.diff(this.data[0])}" stroke-dashoffset="25"></circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="${this.segmentColors[1]}" stroke-width="5" stroke-dasharray="${this.data[1]} ${this.diff(this.data[1])}" stroke-dashoffset="${this.offset}"></circle>
+                <circle class="donut-segment" cx="21" cy="21" r="12" fill="#112054" stroke="${this.internalEclipseColor}" stroke-width="0.3"  stroke-dashoffset="25"></circle>
+            </svg>
+
+        <div class="text">${this.title}</div>
+        `
+        console.log(this.offset)
+        this.parentSelector.append(diagram)
+    
+    }
+
+}
+
+new Diagram('Фонд оплаты труда', [10, 90], ['#2BD6FB', '#217AFF', '#000'], 'out', '#2BD6FB').render()
