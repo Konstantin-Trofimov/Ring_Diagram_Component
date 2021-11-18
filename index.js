@@ -1,69 +1,123 @@
-
-
-
-
-function diagram (a, b) {
-
-
-
-    const getOffset = () => 100 - (a) + 25 
-
-    const getDiff = val => 100 - val
-    
-    return `
-    <div class="diagram">
-        <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
-            <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
-
-            
-            <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="#2BD6FB" stroke-width="10" stroke-dasharray="${a} ${getDiff(a)}" stroke-dashoffset="25"></circle>
-            <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="#217AFF" stroke-width="5" stroke-dasharray="${b} ${getDiff(b)}" stroke-dashoffset="${getOffset()}"></circle>
-            
-            <circle class="donut-segment" cx="21" cy="21" r="12" fill="#112054" stroke="#2BD6FB" stroke-width="0.3"  stroke-dashoffset="25"></circle>
-
-            
-        </svg>
-
-        <div class="text">Фонд оплаты труда</div>
-    </div>
-    `
+const financeData = {
+    date: '15.01.2021',
+    total: 600000000,
+    budgetResources: 1092045473,
+    otherResources: 1572394226,
+    wageFund: 2664439699,
+    landTax: 65185520,
+    propertyTax: 45229727
 }
 
-// document.querySelector('.out').innerHTML = diagram(35, 65);
+
+const convertFinanceData = [
+    {
+        title: 'Из средств бюджета',
+        value: 1092045473
+    },
+    {
+        title: 'Из средств от иной приносящей доход деятельности',
+        value: 1572394226
+    },
+    {
+        title: 'Фондоплатытруда',
+        value: 2664439699
+    },
+    {
+        title: 'Земельный налог',
+        value: 165185520
+    },
+    {
+        title: 'Имущественный налог',
+        value: 45229727
+    },
+    
+]
+wageFundDiagramData = convertFinanceData.slice(0, 2);
+сostsDiagramData = convertFinanceData.slice(2, 5).reverse();
+
+
+const getArray = data => data.map(i => i.value);
 
 class Diagram  {
-    constructor(title, data, colors, parentSelector, internalEclipseColor = '#FFFF') {
-        this.parentSelector = document.querySelector(`.${parentSelector}`) ,
-        this.data = data,
-        this.segmentColors = colors,
-        this.internalEclipseColor = internalEclipseColor,
-        this.title = title
-        this.offsets = []
-        this.diff()
+    constructor (title, data, colors, parentSelector, isDecorated = false) {
+        this.parentSelector = document.querySelector(`.${ parentSelector }`),
+        this.segmentColors  = colors,
+        this.isDecorated    = isDecorated,
+        this.title          = title,
+        this.data           = data,
+        this.fill           = '#112054',
+        this.diff(),
+        this.offset(),
+        this.sector(),
+        this.insDiagramSectors(),
+        this.diagrammSegmentConfig()
     }
 
-    get offset () { return 100 - (this.data[0]) + 25 }
+    get diagramValues () { 
+        const values = this.data.map(i => i.value);
+        const sumValues = values.reduce((a, b) => a + b);
+
+        let array = values.map(i => Math.round( i / sumValues * 100));
+        let max = Math.max(...array);
+       
+        if (this.isDecorated) {
+            array = array.map(i => i < 5 ? i + 10 : i)
+        }
+
+        const sumRatio = array.reduce((a, b) => a + b);
+        const diff = sumRatio - 100;
+
+        return array.map(i => i === max ? i - diff : i);
+    }
+
+    get internalEclipseColor () { return this.segmentColors[this.segmentColors.length - 1] }
 
     diff (val) { return 100 - val }
 
-    render() {
-        const diagram = document.createElement('div')
-        diagram.classList.add('diagram')
-        diagram.innerHTML = `
-            <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
-                <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff"></circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="${this.segmentColors[0]}" stroke-width="10" stroke-dasharray="${this.data[0]} ${this.diff(this.data[0])}" stroke-dashoffset="25"></circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="#112054" stroke="${this.segmentColors[1]}" stroke-width="5" stroke-dasharray="${this.data[1]} ${this.diff(this.data[1])}" stroke-dashoffset="${this.offset}"></circle>
-                <circle class="donut-segment" cx="21" cy="21" r="12" fill="#112054" stroke="${this.internalEclipseColor}" stroke-width="0.3"  stroke-dashoffset="25"></circle>
-            </svg>
-
-        <div class="text">${this.title}</div>
-        `
-        console.log(this.offset)
-        this.parentSelector.append(diagram)
-    
+    offset (index) { 
+        const start = 25;
+        let location = 0;
+        let sum = 0;
+      
+        this.diagramValues.map((_, i, array) => {
+            if (i == index && i !== 0) {
+                for (let j = 0; j < i; j++) {
+                    sum += array[j];
+                }
+                sum = 100 - sum;
+               
+            }
+        })    
+        location = start + sum;
+       
+        return location;  
     }
 
+    diagrammSegmentConfig (r = 15.91549430918954) { return `class="donut-segment" cx="21" cy="21" r="${r}"` }
+
+    sector (item, index) { 
+        const strokeWidth = index == 0 ? 10 : index == this.diagramValues.length - 1 ? 5 : 7; 
+        return `<circle  ${this.diagrammSegmentConfig()} fill="${this.fill}" stroke="${this.segmentColors[index]}" stroke-width="${strokeWidth}" stroke-dasharray="${item} ${this.diff(item)}" stroke-dashoffset="${this.offset(index)}"></circle>`; 
+    }
+
+    insDiagramSectors() { return this.diagramValues.map((i, index) => this.sector(i, index)).join('') }
+  
+
+    render () { 
+        const diagram = document.createElement('div');
+        diagram.classList.add('diagram');
+        diagram.innerHTML = `
+            <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+                ${this.insDiagramSectors()}
+                <circle ${this.diagrammSegmentConfig(12)} fill="${this.fill}" stroke="${this.internalEclipseColor}" stroke-width="0.3"></circle>
+            </svg>
+
+            <div class="text">${this.title}</div>
+        `;
+        
+        this.parentSelector.append(diagram);
+    }
 }
 
-new Diagram('Фонд оплаты труда', [10, 90], ['#2BD6FB', '#217AFF', '#000'], 'out', '#2BD6FB').render()
+new Diagram('Фонд оплаты труда', wageFundDiagramData, ['#2BD6FB', '#217AFF'], 'out', ).render()
+new Diagram('Затраты', сostsDiagramData, ['#FFC01D',  '#FB9B2B', '#FD6A6A'], 'out2', true).render()

@@ -4,9 +4,6 @@
 * {
     font-family: 'Oswald', sans-serif;
 }
-body {
-    background-color: #112054;
-}
 
 .finance__wrap {
     
@@ -85,7 +82,7 @@ body {
             transform: translate(-50%, -50%);
             width: 100%;
         }
-    .out {
+    .out, .out2 {
         width: 100%;
         height: 100%;
     }
@@ -108,4 +105,8 @@ body {
         text-transform: uppercase;
        
         
+     }
+
+     .donut-segment-a {
+         transform: translate(-0.1em, 0.1em);
      }
